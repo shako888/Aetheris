@@ -10,6 +10,7 @@ import {
   updateProfile,
   signInWithPopup,
   GoogleAuthProvider,
+  deleteUser,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
@@ -20,6 +21,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   error: string | null;
   clearError: () => void;
 }
@@ -75,10 +77,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut(auth);
   };
 
+  const deleteAccount = async () => {
+    if (!auth.currentUser) return;
+    try {
+      await deleteUser(auth.currentUser);
+    } catch (e: unknown) {
+      setError(getFirebaseError(e));
+      throw e;
+    }
+  };
+
   const clearError = () => setError(null);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signInWithGoogle, logOut, error, clearError }}>
+    <AuthContext.Provider value={{ user, loading, signUp, signIn, signInWithGoogle, logOut, deleteAccount, error, clearError }}>
       {children}
     </AuthContext.Provider>
   );
